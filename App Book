@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Storybook with Text-to-Speech</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #6a11cb;
+            --secondary: #2575fc;
+            --accent: #ff7e5f;
+            --light: #f8f9fa;
+            --dark: #333;
+            --success: #38ef7d;
+            --warning: #ff9966;
+            --danger: #ff4b2b;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.97);
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 95vh;
+        }
+        
+        header {
+            background: linear-gradient(to right, var(--accent), #feb47b);
+            padding: 25px;
+            text-align: center;
+            color: white;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+        }
+        
+        .tagline {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+        
+        .book-icon {
+            font-size: 3rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .stories-list {
+            width: 30%;
+            background-color: var(--light);
+            border-right: 2px solid #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stories-list h2 {
+            margin-bottom: 20px;
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .story-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            position: relative;
+            border: 2px solid transparent;
+        }
+        
+        .story-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .story-item.active {
+            border-left: 5px solid var(--accent);
+            background-color: #fff8f6;
+            border-color: var(--accent);
+        }
+        
+        .story-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--dark);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .story-date {
+            font-size: 0.8rem;
+            color: #888;
+            font-weight: normal;
+        }
+        
+        .story-preview {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            max-height: 3.6em;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .story-content {
+            width: 70%;
+            padding: 30px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .story-editor {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        
+        input[type="text"] {
+            padding: 14px 20px;
+            font-size: 1.3rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            flex: 1;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        input[type="text"]:focus {
+            border-color: var(--accent);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 126, 95, 0.2);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+        }
+        
+        button {
+            padding: 14px 22px;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        button:active {
+            transform: translateY(2px);
+        }
+        
+        .save-btn {
+            background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .save-btn:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .speaker-btn {
+            background: linear-gradient(to right, var(--accent), #feb47b);
+            color: white;
+            min-width: 180px;
+        }
+        
+        .speaker-btn:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .speaker-btn.speaking {
+            background: linear-gradient(to right, var(--danger), #ff9966);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 75, 43, 0.5); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 75, 43, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 75, 43, 0); }
+        }
+        
+        textarea {
+            flex: 1;
+            padding: 25px;
+            font-size: 1.15rem;
+            line-height: 1.7;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            resize: none;
+            transition: all 0.3s;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        textarea:focus {
+            border-color: #4facfe;
+            outline: none;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.05), 0 0 0 3px rgba(79, 172, 254, 0.2);
+        }
+        
+        .new-story-btn {
+            background: linear-gradient(to right, var(--success), #11998e);
+            color: white;
+            padding: 16px;
+            font-size: 1.1rem;
+            margin-top: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .instructions {
+            background: #e3f2fd;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 5px solid #1976d2;
+        }
+        
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: var(--light);
+            color: #666;
+            border-top: 1px solid #e9ecef;
+            font-size: 0.9rem;
+        }
+        
+        .status-bar {
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.03);
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .voice-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            padding: 12px;
+            background: #f0f8ff;
+            border-radius: 10px;
+        }
+        
+        select {
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            flex: 1;
+        }
+        
+        .troubleshooting {
+            background: #fff8e1;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 5px solid #ffa000;
+        }
+        
+        .troubleshooting h3 {
+            color: #ff6f00;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .troubleshooting li strong {
+            color: #ff6f00;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .stories-list, .story-content {
+                width: 100%;
+            }
+            
+            .stories-list {
+                border-right: none;
+                border-bottom: 2px solid #e9ecef;
+                max-height: 300px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .editor-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            input[type="text"] {
+                width: 100%;
+            }
+            
+            .controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="book-icon">📚</div>
+                <div>
+                    <h1>Digital Storybook</h1>
+                    <p class="tagline">Write, Listen, Save - Your Stories in One Place</p>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="save-btn">💾 Save Story</button>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <div class="stories-list">
+                <h2>My Stories <span id="stories-count">(3)</span></h2>
+                <div class="story-item active">
+                    <div class="story-title">
+                        <span>The Enchanted Forest</span>
+                        <span class="story-date">Today</span>
+                    </div>
+                    <div class="story-preview">Deep in the heart of the ancient woods, where sunlight barely touched the forest floor, there lay a secret that had been guarded for centuries...</div>
+                </div>
+                <div class="story-item">
+                    <div class="story-title">
+                        <span>Space Adventure</span>
+                        <span class="story-date">Yesterday</span>
+                    </div>
+                    <div class="story-preview">Captain Zara adjusted her space helmet as the alien planet came into view. This was humanity's first contact with extraterrestrial life...</div>
+                </div>
+                <div class="story-item">
+                    <div class="story-title">
+                        <span>Mystery of the Old Clock</span>
+                        <span class="story-date">May 12</span>
+                    </div>
+                    <div class="story-preview">When Emma inherited her grandmother's antique shop, she didn't expect to find a mysterious clock that seemed to count down to something unknown...</div>
+                </div>
+                
+                <button class="new-story-btn">＋ Add New Story</button>
+                
+                <div class="voice-selector">
+                    <label for="voice-select">Voice:</label>
+                    <select id="voice-select">
+                        <option value="">Loading voices...</option>
+                    </select>
+                </div>
+                
+                <div class="instructions">
+                    <h3>📝 How to Use:</h3>
+                    <ul>
+                        <li><strong>Write</strong> your story title in the top box</li>
+                        <li><strong>Compose</strong> your story in the text area</li>
+                        <li><strong>Save</strong> your story with the Save button</li>
+                        <li><strong>Click speaker</strong> to listen to your story</li>
+                        <li><strong>Add new stories</strong> with the Add button</li>
+                    </ul>
+                </div>
+                
+                <div class="troubleshooting">
+                    <h3>🔊 Audio Not Working?</h3>
+                    <ul>
+                        <li><strong>Check browser support:</strong> Chrome, Firefox, Edge, and Safari work best</li>
+                        <li><strong>Ensure speakers/headphones</strong> are connected and not muted</li>
+                        <li><strong>Verify system volume</strong> is turned up</li>
+                        <li><strong>Try a different voice</strong> from the dropdown</li>
+                        <li><strong>Reload the page</strong> if voices don't load</li>
+                        <li><strong>Enable Web Speech API</strong> in browser settings</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="story-content">
+                <div class="story-editor">
+                    <div class="editor-header">
+                        <input type="text" placeholder="Story title..." value="The Enchanted Forest">
+                        <div class="controls">
+                            <button class="speaker-btn">🔊 Listen to Story</button>
+                        </div>
+                    </div>
+                    
+                    <textarea placeholder="Write your story here...">Deep in the heart of the ancient woods, where sunlight barely touched the forest floor, there lay a secret that had been guarded for centuries. The Enchanted Forest was no ordinary woodland - it was a place where magic flowed like rivers and mythical creatures roamed freely.
+
+Elara, a young botanist with a passion for discovering rare plants, found herself drawn to this mysterious forest. She had heard legends about the Lumina Flowers that bloomed only once every hundred years, possessing the power to heal any ailment. With her trusted field journal and a heart full of courage, she ventured where few dared to go.
+
+On her third day in the forest, Elara stumbled upon a clearing unlike any she had ever seen. Glowing mushrooms illuminated the path, and fireflies danced in patterns that seemed almost intentional. As she approached the center of the clearing, she saw it - the Lumina Flower, pulsating with a soft golden light.
+
+But just as she reached out to examine the flower, a voice echoed through the trees, "Who dares disturb the heart of the forest?" Elara turned to see a majestic stag with antlers that shimmered like starlight. This was the Guardian of the Woods, protector of the forest's most precious secrets.
+
+What followed was a conversation that would change Elara's understanding of nature forever. The Guardian spoke of balance, conservation, and the delicate relationship between humans and the natural world. He allowed her to take a single petal from the Lumina Flower, but only under the condition that she would become a protector of nature in her own world.
+
+Elara returned to her village not just with a miraculous healing petal, but with a newfound mission. She established the Forest Preservation Society, dedicating her life to protecting magical ecosystems around the world. And though she never revealed the true source of her inspiration, those who walked in the woods with her swore they could sometimes hear the gentle voice of the Guardian on the wind.</textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div>Words: <span id="word-count">0</span> | Characters: <span id="char-count">0</span></div>
+            <div>Speech Status: <span id="speech-status">Ready</span></div>
+        </div>
+        
+        <footer>
+            <p>© 2023 Digital Storybook | Your Stories Saved Forever | Text-to-Speech Technology</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const speakerBtn = document.querySelector('.speaker-btn');
+            const saveBtn = document.querySelector('.save-btn');
+            const newStoryBtn = document.querySelector('.new-story-btn');
+            const storyItems = document.querySelectorAll('.story-item');
+            const titleInput = document.querySelector('input[type="text"]');
+            const contentTextarea = document.querySelector('textarea');
+            const voiceSelect = document.getElementById('voice-select');
+            const speechStatus = document.getElementById('speech-status');
+            const wordCount = document.getElementById('word-count');
+            const charCount = document.getElementById('char-count');
+            
+            // Text-to-Speech functionality
+            let speech = null;
+            let voices = [];
+            
+            // Load available voices
+            function loadVoices() {
+                voices = window.speechSynthesis.getVoices();
+                voiceSelect.innerHTML = '';
+                
+                // Add a default option
+                const defaultOption = document.createElement('option');
+                defaultOption.textContent = 'Select a voice';
+                defaultOption.value = '';
+                voiceSelect.appendChild(defaultOption);
+                
+                // Add all available voices
+                voices.forEach(voice => {
+                    const option = document.createElement('option');
+                    option.textContent = `${voice.name} (${voice.lang})`;
+                    option.value = voice.name;
+                    
+                    // Select a natural-sounding voice if available
+                    if (voice.name.includes('Google') || voice.name.includes('Natural')) {
+                        option.selected = true;
+                    }
+                    
+                    voiceSelect.appendChild(option);
+                });
+                
+                // If no voices are available (some browsers load asynchronously)
+                if (voices.length === 0) {
+                    const option = document.createElement('option');
+                    option.textContent = 'No voices available - try reloading';
+                    voiceSelect.appendChild(option);
+                    speechStatus.textContent = 'No voices detected';
+                } else {
+                    speechStatus.textContent = `${voices.length} voices loaded`;
+                }
+            }
+            
+            // Initial load
+            loadVoices();
+            
+            // Some browsers load voices asynchronously
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = loadVoices;
+            }
+            
+            // Text-to-Speech functionality
+            speakerBtn.addEventListener('click', function() {
+                const storyTitle = titleInput.value;
+                const storyContent = contentTextarea.value;
+                
+                if (!storyContent) {
+                    alert('Please write a story first to listen');
+                    return;
+                }
+                
+                // Stop any ongoing speech
+                if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                    speakerBtn.innerHTML = '🔊 Listen to Story';
+                    speakerBtn.classList.remove('speaking');
+                    speechStatus.textContent = 'Speech stopped';
+                    return;
+                }
+                
+                // Get selected voice
+                const selectedVoiceName = voiceSelect.value;
+                const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
+                
+                // Speech synthesis
+                speech = new SpeechSynthesisUtterance();
+                speech.text = `${storyTitle}. ${storyContent}`;
+                speech.volume = 1;
+                speech.rate = 1;
+                speech.pitch = 1;
+                
+                // Use selected voice if available
+                if (selectedVoice) {
+                    speech.voice = selectedVoice;
+                }
+                
+                // Change button to indicate speaking
+                speakerBtn.innerHTML = '⏹️ Stop Reading';
+                speakerBtn.classList.add('speaking');
+                speechStatus.textContent = 'Reading story...';
+                
+                // Start speaking
+                window.speechSynthesis.speak(speech);
+                
+                // Handle when speech ends
+                speech.onend = function() {
+                    speakerBtn.innerHTML = '🔊 Listen to Story';
+                    speakerBtn.classList.remove('speaking');
+                    speechStatus.textContent = 'Reading complete';
+                };
+                
+                // Handle errors
+                speech.onerror = function(event) {
+                    console.error('Speech error:', event);
+                    speakerBtn.innerHTML = '🔊 Listen to Story';
+                    speakerBtn.classList.remove('speaking');
+                    speechStatus.textContent = 'Error: ' + event.error;
+                    alert(`Speech error: ${event.error}. Please check the troubleshooting guide.`);
+                };
+            });
+            
+            // Save story functionality
+            saveBtn.addEventListener('click', function() {
+                const storyTitle = titleInput.value;
+                const storyContent = contentTextarea.value;
+                
+                if (!storyTitle || !storyContent) {
+                    alert('Please fill both title and story content');
+                    return;
+                }
+                
+                // In a real app, this would save to localStorage or a database
+                alert(`"${storyTitle}" saved successfully!`);
+                
+                // Update story preview in list
+                const activeStory = document.querySelector('.story-item.active');
+                if (activeStory) {
+                    activeStory.querySelector('.story-title span:first-child').textContent = storyTitle;
+                    activeStory.querySelector('.story-preview').textContent = 
+                        storyContent.substring(0, 150) + (storyContent.length > 150 ? '...' : '');
+                }
+            });
+            
+            // Create new story
+            newStoryBtn.addEventListener('click', function() {
+                titleInput.value = 'Untitled Story';
+                contentTextarea.value = '';
+                titleInput.focus();
+                
+                // Create new story item
+                const newStory = document.createElement('div');
+                newStory.className = 'story-item';
+                newStory.innerHTML = `
+                    <div class="story-title">
+                        <span>Untitled Story</span>
+                        <span class="story-date">Now</span>
+                    </div>
+                    <div class="story-preview">New story...</div>
+                `;
+                
+                // Add before the "Add New Story" button
+                document.querySelector('.stories-list').insertBefore(newStory, newStoryBtn);
+                
+                // Make it active
+                storyItems.forEach(item => item.classList.remove('active'));
+                newStory.classList.add('active');
+                
+                // Add click event to new story
+                newStory.addEventListener('click', storyClickHandler);
+                
+                // Update stories count
+                document.getElementById('stories-count').textContent = `(${document.querySelectorAll('.story-item').length})`;
+                
+                alert('New story created! Start writing...');
+            });
+            
+            // Story click handler
+            function storyClickHandler() {
+                storyItems.forEach(item => item.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update editor
+                const title = this.querySelector('.story-title span:first-child').textContent;
+                titleInput.value = title;
+                
+                // For demo purposes - in real app you'd load from storage
+                const preview = this.querySelector('.story-preview').textContent;
+                contentTextarea.value = preview === 'New story...' ? '' : 
+                    `This is the beginning of "${title}". Write your amazing story here!\n\nStart typing to replace this text with your creative writing...`;
+            }
+            
+            // Add event listeners to existing stories
+            storyItems.forEach(item => {
+                item.addEventListener('click', storyClickHandler);
+            });
+            
+            // Word and character counter
+            contentTextarea.addEventListener('input', function() {
+                const text = this.value;
+                charCount.textContent = text.length;
+                
+                const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+                wordCount.textContent = words;
+            });
+            
+            // Initialize counters
+            contentTextarea.dispatchEvent(new Event('input'));
+        });
+    </script>
+</body>
+</html>
